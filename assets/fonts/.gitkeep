@@ -1,0 +1,2 @@
+# 把中文字体（.ttf / .otf）放在这个目录，例如 LXGW WenKai 霞鹜文楷。
+# 然后在插件配置 fontsDir 填本目录路径，并在 fontFamily 填字体名即可启用。

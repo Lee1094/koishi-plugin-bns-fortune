@@ -1,0 +1,56 @@
+{
+  "name": "koishi-plugin-bns-fortune",
+  "description": "剑灵风格每日好运签：每日一签，Canvas 绘制签图，文字可变，支持自定义背景与主题。",
+  "version": "1.0.1",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
+  "koishi": {
+    "description": {
+      "zh": "剑灵好运签（每日一签）"
+    },
+    "manifest": {
+      "services": [
+        "canvas"
+      ]
+    }
+  },
+  "keywords": [
+    "chatbot",
+    "koishi",
+    "plugin",
+    "fortune",
+    "签",
+    "好运签",
+    "剑灵",
+    "canvas"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rimraf lib",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "koishi": "^4.15.0",
+    "koishi-plugin-canvas": "^1.0.0"
+  },
+  "devDependencies": {
+    "koishi": "^4.15.0",
+    "koishi-plugin-canvas": "^1.0.0",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.4.0"
+  },
+  "peerDependencies": {
+    "koishi": "^4.15.0",
+    "koishi-plugin-canvas": "^1.0.0",
+    "canvas": "^2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "canvas": {
+      "optional": true
+    }
+  }
+}
