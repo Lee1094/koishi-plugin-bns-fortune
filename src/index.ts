@@ -64,7 +64,7 @@ export const Config: Schema<Config> = Schema.intersect([
         }).description('分类运势。'),
       }).description('签文对象'),
     ).description('自定义签文库（高级）。全覆盖内置 40 签，留空则用内置库。')
-      .default(null),
+      .default([]),
   }),
 ])
 
