@@ -1,6 +1,8 @@
 /**
  * koishi-plugin-bns-fortune
  * 剑灵风格每日好运签 —— Canvas 绘制，每日一签，文字可变
+ *
+ * 直接使用 node-canvas 包绘制，不依赖 Koishi 的 canvas 服务（避免与其他插件的服务名冲突）。
  */
 import { Context, Schema, Logger, h } from 'koishi'
 import { resolve } from 'node:path'
@@ -72,21 +74,6 @@ export const name = 'bns-fortune'
 export const reusable = true
 export { Config as config }
 
-/**
- * 获取 canvas 服务。
- * koishi-plugin-canvas（基于 skia-canvas）会注入 ctx.canvas。
- */
-function getCanvas(ctx: Context) {
-  // koishi-plugin-canvas 注入的服务挂载在 ctx.canvas
-  const canvas = (ctx as unknown as { canvas?: import('./render').CanvasService }).canvas
-  if (!canvas) {
-    throw new Error(
-      '未检测到 canvas 服务。请在 Koishi 中安装并启用 "koishi-plugin-canvas" 插件，本插件依赖它来绘制签图。',
-    )
-  }
-  return canvas
-}
-
 /** 注册字体目录下的 ttf/otf（若提供） */
 function tryRegisterFonts(dir: string): void {
   if (!dir) return
@@ -102,26 +89,16 @@ function tryRegisterFonts(dir: string): void {
     logger.warn('读取字体目录失败：%o', e)
     return
   }
-  // skia-canvas 提供 Fontlibrary.use；node-canvas 提供 registerFont。
-  // 两者都尝试，命中其一即可。
   for (const f of files) {
     const lower = f.toLowerCase()
     if (!lower.endsWith('.ttf') && !lower.endsWith('.otf')) continue
     const full = resolve(abs, f)
     const family = f.replace(/\.(ttf|otf)$/i, '')
     try {
-      // skia-canvas
-      const skia = (globalThis as any).FontLibrary
-      if (skia?.use) {
-        skia.use(family, [full])
-        continue
-      }
-    } catch { /* ignore */ }
-    try {
-      // node-canvas
-      const nodeCanvas = require('canvas')
-      if (typeof nodeCanvas.registerFont === 'function') {
-        nodeCanvas.registerFont(full, { family })
+      // node-canvas 的 registerFont
+      const { registerFont } = require('canvas')
+      if (typeof registerFont === 'function') {
+        registerFont(full, { family })
       }
     } catch { /* ignore */ }
   }
@@ -141,11 +118,7 @@ export function apply(ctx: Context, config: Config) {
       : FORTUNES
 
   const theme: Theme = THEMES[config.theme] ?? THEMES.ink
-  let renderer: FortuneRenderer | undefined
-  function getRenderer(): FortuneRenderer {
-    if (!renderer) renderer = new FortuneRenderer(getCanvas(ctx))
-    return renderer
-  }
+  const renderer = new FortuneRenderer()
 
   // 每日每用户渲染缓存：key = `${date}|${userId}`
   const renderCache = new Map<string, Buffer>()
@@ -168,7 +141,7 @@ export function apply(ctx: Context, config: Config) {
 
       try {
         const { fortune } = drawFortune(date, session.userId, config.masterKey, library)
-        const png = await getRenderer().render({
+        const png = await renderer.render({
           fortune,
           date,
           nickname: session.username || session.author?.nickname,

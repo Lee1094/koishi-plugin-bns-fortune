@@ -6,30 +6,11 @@
  *   支持 customBackground 配置项替换为外部图片。
  * - 动态文字（签等级/签诗/解签/运势/日期/昵称/签号）每次叠加在背景之上。
  * - 配色用剑灵水墨风（墨黑 / 朱砂红 / 赤金 / 米色），装饰加入剑气、符文元素。
+ *
+ * 直接使用 node-canvas 包，不依赖 Koishi 的 canvas 服务（避免服务名冲突）。
  */
 import { Fortune } from './fortunes'
-
-/* ------------------------------------------------------------------ */
-/* 画布服务最小类型定义（兼容 koishi-plugin-canvas / skia-canvas）      */
-/* ------------------------------------------------------------------ */
-
-export interface CanvasLike {
-  width: number
-  height: number
-  getContext(type: '2d'): CanvasRenderingContext2D
-  /** 兼容 skia-canvas / node-canvas：不传参数时两者都默认返回 PNG Buffer */
-  toBuffer(format?: string, config?: unknown): Buffer
-}
-
-export interface ImageLike {
-  width: number
-  height: number
-}
-
-export interface CanvasService {
-  createCanvas(width: number, height: number): CanvasLike
-  loadImage(source: string | Buffer): Promise<ImageLike>
-}
+import { createCanvas, loadImage, Canvas, Image } from 'canvas'
 
 /* ------------------------------------------------------------------ */
 /* 主题                                                                */
@@ -106,13 +87,11 @@ export interface RenderInput {
 
 export class FortuneRenderer {
   /** 背景缓存：key = `${themeName}|${customBg ?? 'builtin'}` */
-  private bgCache = new Map<string, CanvasLike>()
+  private bgCache = new Map<string, Canvas>()
   /** 自定义背景图缓存：key = url */
-  private imageCache = new Map<string, ImageLike>()
+  private imageCache = new Map<string, Image>()
   /** 缓存条数上限 */
   private static MAX_CACHE = 12
-
-  constructor(private canvas: CanvasService) {}
 
   private evict(map: Map<string, unknown>) {
     while (map.size > FortuneRenderer.MAX_CACHE) {
@@ -129,21 +108,21 @@ export class FortuneRenderer {
   }
 
   /** 获取（或绘制并缓存）背景画布 */
-  private async getBackground(theme: Theme, customBg?: string): Promise<CanvasLike> {
+  private async getBackground(theme: Theme, customBg?: string): Promise<Canvas> {
     const key = `${theme.name}|${customBg ?? 'builtin'}`
     const cached = this.bgCache.get(key)
     if (cached) return cached
 
-    let bg: CanvasLike
+    let bg: Canvas
     if (customBg) {
       // 自定义背景：加载图片并缩放绘制到画布
       let img = this.imageCache.get(customBg)
       if (!img) {
-        img = await this.canvas.loadImage(customBg)
+        img = await loadImage(customBg)
         this.imageCache.set(customBg, img)
         this.evict(this.imageCache)
       }
-      bg = this.canvas.createCanvas(W, H)
+      bg = createCanvas(W, H)
       const ctx = bg.getContext('2d')
       // 先填底色，避免透明
       ctx.fillStyle = theme.bg
@@ -152,13 +131,12 @@ export class FortuneRenderer {
       const scale = Math.max(W / img.width, H / img.height)
       const dw = img.width * scale
       const dh = img.height * scale
-      // skia Image 类型与 dom 不兼容，这里用 any 绕过 TS 校验
-      ;(ctx.drawImage as any)(img, (W - dw) / 2, (H - dh) / 2, dw, dh)
+      ctx.drawImage(img as any, (W - dw) / 2, (H - dh) / 2, dw, dh)
       // 仍叠加边框与暗角，保持风格统一
       drawVignette(ctx, W, H, theme)
       drawBorder(ctx, W, H, theme)
     } else {
-      bg = this.canvas.createCanvas(W, H)
+      bg = createCanvas(W, H)
       const ctx = bg.getContext('2d')
       drawBackground(ctx, W, H, theme)
     }
@@ -173,11 +151,11 @@ export class FortuneRenderer {
     const { fortune, date, nickname, fontFamily, theme, customBackground } = input
 
     const bg = await this.getBackground(theme, customBackground)
-    const canvas = this.canvas.createCanvas(W, H)
+    const canvas = createCanvas(W, H)
     const ctx = canvas.getContext('2d')
 
     // 1. 复制缓存背景
-    ;(ctx.drawImage as any)(bg, 0, 0)
+    ctx.drawImage(bg as any, 0, 0)
 
     // 2. 顶部绸带 + 签等级标题（动态）
     drawRibbon(ctx, W / 2, 78, theme)
@@ -198,7 +176,7 @@ export class FortuneRenderer {
     // 7. 底部：日期 / 昵称 / 签号
     drawFooter(ctx, W, H, date, nickname, fortune.number, this.fontStack(fontFamily), theme)
 
-    // 不传参数：skia-canvas 与 node-canvas 均默认返回 PNG，兼容性最好
+    // 不传参数：node-canvas 默认返回 PNG Buffer
     return canvas.toBuffer()
   }
 }
