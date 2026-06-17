@@ -179,8 +179,8 @@ export class FortuneRenderer {
     // 7. 底部：日期 / 昵称 / 签号
     drawFooter(ctx, W, H, date, nickname, fortune.number, this.fontStack(fontFamily), theme)
 
-    // 不传参数：node-canvas 默认返回 PNG Buffer
-    return canvas.toBuffer()
+    // @napi-rs/canvas 需要传 mime type
+    return canvas.toBuffer('image/png')
   }
 }
 
