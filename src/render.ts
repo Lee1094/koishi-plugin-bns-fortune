@@ -12,6 +12,9 @@
 import { Fortune } from './fortunes'
 import { createCanvas, loadImage, Canvas, Image } from '@napi-rs/canvas'
 
+/** @napi-rs/canvas 渲染上下文，与 DOM Ctx2D 运行时兼容 */
+type Ctx2D = any
+
 /* ------------------------------------------------------------------ */
 /* 主题                                                                */
 /* ------------------------------------------------------------------ */
@@ -185,7 +188,7 @@ export class FortuneRenderer {
 /* 背景绘制                                                            */
 /* ================================================================== */
 
-function drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number, theme: Theme): void {
+function drawBackground(ctx: Ctx2D, w: number, h: number, theme: Theme): void {
   // 1. 米色径向渐变底
   const grad = ctx.createRadialGradient(w / 2, h * 0.42, 60, w / 2, h * 0.5, h * 0.75)
   grad.addColorStop(0, theme.bg)
@@ -204,7 +207,7 @@ function drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number, the
 }
 
 /** 福字暗纹：稀疏平铺的半透明「福」字 */
-function drawFuPattern(ctx: CanvasRenderingContext2D, w: number, h: number, theme: Theme): void {
+function drawFuPattern(ctx: Ctx2D, w: number, h: number, theme: Theme): void {
   ctx.save()
   ctx.fillStyle = theme.goldDim
   ctx.globalAlpha = 0.08
@@ -223,7 +226,7 @@ function drawFuPattern(ctx: CanvasRenderingContext2D, w: number, h: number, them
 }
 
 /** 暗角：四角加深 */
-function drawVignette(ctx: CanvasRenderingContext2D, w: number, h: number, theme: Theme): void {
+function drawVignette(ctx: Ctx2D, w: number, h: number, theme: Theme): void {
   ctx.save()
   const g = ctx.createRadialGradient(w / 2, h / 2, h * 0.3, w / 2, h / 2, h * 0.75)
   g.addColorStop(0, 'rgba(0,0,0,0)')
@@ -234,7 +237,7 @@ function drawVignette(ctx: CanvasRenderingContext2D, w: number, h: number, theme
 }
 
 /** 双层金边框 + 四角剑形符文 */
-function drawBorder(ctx: CanvasRenderingContext2D, w: number, h: number, theme: Theme): void {
+function drawBorder(ctx: Ctx2D, w: number, h: number, theme: Theme): void {
   ctx.save()
   // 外粗金线
   ctx.strokeStyle = theme.gold
@@ -255,7 +258,7 @@ function drawBorder(ctx: CanvasRenderingContext2D, w: number, h: number, theme: 
 }
 
 /** 四角小符文：六芒剑纹 */
-function drawCornerSigil(ctx: CanvasRenderingContext2D, cx: number, cy: number, theme: Theme): void {
+function drawCornerSigil(ctx: Ctx2D, cx: number, cy: number, theme: Theme): void {
   ctx.save()
   ctx.translate(cx, cy)
   ctx.strokeStyle = theme.gold
@@ -281,7 +284,7 @@ function drawCornerSigil(ctx: CanvasRenderingContext2D, cx: number, cy: number, 
 /* ================================================================== */
 
 /** 顶部红色绸带（含两端剑形流苏） */
-function drawRibbon(ctx: CanvasRenderingContext2D, cx: number, cy: number, theme: Theme): void {
+function drawRibbon(ctx: Ctx2D, cx: number, cy: number, theme: Theme): void {
   const w = 380
   const hh = 64
   const x0 = cx - w / 2
@@ -310,7 +313,7 @@ function drawRibbon(ctx: CanvasRenderingContext2D, cx: number, cy: number, theme
 }
 
 /** 剑形流苏：绸带末端的小剑形装饰 */
-function drawSwordTassel(ctx: CanvasRenderingContext2D, x: number, y: number, dir: number, theme: Theme): void {
+function drawSwordTassel(ctx: Ctx2D, x: number, y: number, dir: number, theme: Theme): void {
   ctx.save()
   ctx.translate(x, y)
   ctx.scale(dir, 1)
@@ -336,7 +339,7 @@ function drawSwordTassel(ctx: CanvasRenderingContext2D, x: number, y: number, di
 
 /** 绸带上的签等级标题 */
 function drawLevelTitle(
-  ctx: CanvasRenderingContext2D,
+  ctx: Ctx2D,
   cx: number, cy: number,
   level: string,
   font: string,
@@ -359,7 +362,7 @@ function drawLevelTitle(
 }
 
 /** 圆形印章：固定篆书感「灵签」+ 剑气光线 */
-function drawSeal(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, theme: Theme): void {
+function drawSeal(ctx: Ctx2D, cx: number, cy: number, r: number, theme: Theme): void {
   ctx.save()
   // 外圈剑气光线
   ctx.strokeStyle = theme.gold
@@ -397,7 +400,7 @@ function drawSeal(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: numb
 
 /** 签诗竖排（右起，每列 7 字） */
 function drawPoemVertical(
-  ctx: CanvasRenderingContext2D,
+  ctx: Ctx2D,
   cx: number, startY: number,
   poem: string[],
   font: string,
@@ -425,7 +428,7 @@ function drawPoemVertical(
 
 /** 解签（横排，居中，自动换行） */
 function drawInterpretation(
-  ctx: CanvasRenderingContext2D,
+  ctx: Ctx2D,
   cx: number, cy: number,
   text: string,
   font: string,
@@ -446,7 +449,7 @@ function drawInterpretation(
 
 /** 运势小标签（横排） */
 function drawLuckTags(
-  ctx: CanvasRenderingContext2D,
+  ctx: Ctx2D,
   cx: number, cy: number,
   luck: Fortune['luck'],
   font: string,
@@ -489,7 +492,7 @@ function drawLuckTags(
 
 /** 底部：日期 / 昵称 / 签号 */
 function drawFooter(
-  ctx: CanvasRenderingContext2D,
+  ctx: Ctx2D,
   w: number, h: number,
   date: string, nickname: string | undefined,
   number: number,
@@ -524,7 +527,7 @@ function fontBase(): string {
 }
 
 /** 中文/英文混排自动换行 */
-function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+function wrapText(ctx: Ctx2D, text: string, maxWidth: number): string[] {
   const lines: string[] = []
   let current = ''
   for (const ch of text) {
@@ -542,7 +545,7 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
 
 /** 圆角矩形路径 */
 function roundRect(
-  ctx: CanvasRenderingContext2D,
+  ctx: Ctx2D,
   x: number, y: number, w: number, h: number, r: number,
 ): void {
   ctx.beginPath()

@@ -100,9 +100,6 @@ function tryRegisterFonts(dir: string): void {
       if (GlobalFonts?.register) {
         GlobalFonts.register(full, { family })
       }
-      if (typeof registerFont === 'function') {
-        registerFont(full, { family })
-      }
     } catch { /* ignore */ }
   }
 }
