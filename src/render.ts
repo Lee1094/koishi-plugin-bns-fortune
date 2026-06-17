@@ -10,7 +10,7 @@
  * 直接使用 node-canvas 包，不依赖 Koishi 的 canvas 服务（避免服务名冲突）。
  */
 import { Fortune } from './fortunes'
-import { createCanvas, loadImage, Canvas, Image } from 'canvas'
+import { createCanvas, loadImage, Canvas, Image } from '@napi-rs/canvas'
 
 /* ------------------------------------------------------------------ */
 /* 主题                                                                */

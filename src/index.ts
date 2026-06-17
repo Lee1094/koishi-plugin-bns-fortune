@@ -95,8 +95,11 @@ function tryRegisterFonts(dir: string): void {
     const full = resolve(abs, f)
     const family = f.replace(/\.(ttf|otf)$/i, '')
     try {
-      // node-canvas 的 registerFont
-      const { registerFont } = require('canvas')
+      // @napi-rs/canvas 的 GlobalFonts.register
+      const { GlobalFonts } = require('@napi-rs/canvas')
+      if (GlobalFonts?.register) {
+        GlobalFonts.register(full, { family })
+      }
       if (typeof registerFont === 'function') {
         registerFont(full, { family })
       }

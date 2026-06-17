@@ -30,10 +30,10 @@
   },
   "peerDependencies": {
     "koishi": "^4.15.0",
-    "canvas": "^2.0.0"
+    "@napi-rs/canvas": "^0.1.0"
   },
   "peerDependenciesMeta": {
-    "canvas": {
+    "@napi-rs/canvas": {
       "optional": false
     }
   },
