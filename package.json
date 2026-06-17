@@ -35,22 +35,18 @@
   },
   "peerDependencies": {
     "koishi": "^4.15.0",
-    "koishi-plugin-canvas": "^1.0.0"
-  },
-  "devDependencies": {
-    "koishi": "^4.15.0",
-    "koishi-plugin-canvas": "^1.0.0",
-    "rimraf": "^5.0.0",
-    "typescript": "^5.4.0"
-  },
-  "peerDependencies": {
-    "koishi": "^4.15.0",
-    "koishi-plugin-canvas": "^1.0.0",
+    "koishi-plugin-canvas": "^0.2.2",
     "canvas": "^2.0.0"
   },
   "peerDependenciesMeta": {
     "canvas": {
       "optional": true
     }
+  },
+  "devDependencies": {
+    "koishi": "^4.15.0",
+    "koishi-plugin-canvas": "^0.2.2",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.4.0"
   }
 }
